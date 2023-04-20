@@ -1,0 +1,1 @@
+BuscarUnico todo = nueva BuscarUnico ("literaturas","hola");
