@@ -1,6 +1,18 @@
-EliminarUnico eliminadoc = nueva EliminarUnico("literaturas",
+ActualizarUnico actualizadoc = nueva ActualizarUnico("literaturas",
 "
 {
  "nombre" : "Obra Literaria"
+},
+{
+ $set: {"autor" : "Mario Vargas"}
 }
+");
+
+
+InsertarUnico insert1 = nueva InsertarUnico("literaturas" ,
+"
+{
+ "nombre" : "Obra Literaria",
+ "autor" : "Jorge Luis"
+ }
 ");
