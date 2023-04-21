@@ -1,5 +1,5 @@
 texto = ''
-with open('little.txt', 'r', encoding='utf-8') as archivo:
+with open('archivoprueba.txt', 'r', encoding='utf-8') as archivo:
     # for lineas in archivo.readlines():
     #     texto += lineas
     texto = archivo.read()
@@ -15,13 +15,18 @@ class Analizador:
         self.fila = 1 #FILA ACTUAL
         self.columna = 1 #COLUMNA ACTUAL
         self.ListaErrores = [] # LISTA PARA GUARDAR ERRORES
+        self.tokenAutilizar = ''
+        self.json = ''
+        self.identificador = ''
 
     def _token(self, token:str, estado_actual:str, estado_sig:str):
         if self.lineas[self.index] != " ":
             text = self._juntar(self.index, len(token))
-            if self._analizar(token, text):
+            token_encontrado = self._analizar(token, text)
+            if token_encontrado != False:
                 self.index += len(token) - 1
                 self.columna += len(token) - 1
+                self.tokenAutilizar = token_encontrado
                 return estado_sig
             else:
                 return 'ERROR'
@@ -55,6 +60,7 @@ class Analizador:
         
             print(f'********** ENCONTRE - {tmp} ***************')
             self.index -= 1
+            self.tokenAutilizar = tmp
             return tmp
         except:
             return None
@@ -105,7 +111,7 @@ class Analizador:
                     return False
                 
             print(f'********** ENCONTRE - {tokem_tmp} ***************')
-            return True
+            return tokem_tmp
         except:
             #print('ERROR2')
             return False
@@ -114,10 +120,9 @@ class Analizador:
     def _atributo(self, funcion):
         estado_actual = 'A0'
         identificador = ''
+        sintaxisJson = ''
 
-        while self.lineas[self.index] != "":
-            #print(f'CARACTER11 - {self.lineas[self.index] } | ESTADO - {estado_actual} | FILA - {self.fila}  | COLUMNA - {self.columna}')
-            
+        while self.lineas[self.index] != "":            
             # IDENTIFICAR SALTO DE LINEA
             if self.lineas[self.index] == '\n':
                 self.fila += 1
@@ -134,7 +139,8 @@ class Analizador:
 
                     # nombre del identificador
                     identificador = estado_actual
-                    #self.index -= 1
+                    self.identificador = identificador
+                    print(identificador)
                     estado_actual = 'A2'  
 
                 else:
@@ -172,6 +178,7 @@ class Analizador:
                 elif funcion == "ActualizarUnico":
                     sintaxisJson = self.nombre_set()
 
+                self.json = sintaxisJson
                 estado_actual = 'A6'
 
 
@@ -188,6 +195,9 @@ class Analizador:
             if estado_actual == 'ERROR':
                 return estado_actual
             
+            # Retornar error a la funcion al metodo compilador
+            if estado_actual == 'ERROR' or sintaxisJson == 'ERROR':
+                return 'ERROR'
 
             #INCREMENTAR POSICION
             if self.index < len(self.lineas) - 1:
@@ -198,6 +208,7 @@ class Analizador:
     def nombre(self):
         estado_actual = 'N0'
         json = ''
+        lista_estadoUsados = []
 
         while self.lineas[self.index] != "":
         
@@ -248,6 +259,20 @@ class Analizador:
                 self.index -= 1
                 return json
             
+            
+            # Retornar error a la funcion al metodo compilador
+            if estado_actual == 'ERROR':
+                return 'ERROR'
+            
+
+            encontrado = False
+            for x in lista_estadoUsados:
+                if x == estado_actual:
+                    encontrado = True
+            if encontrado == False:
+                lista_estadoUsados.append(estado_actual)
+                json += self.tokenAutilizar
+            
             #INCREMENTAR POSICION
             if self.index < len(self.lineas) - 1:
                 self.index +=1
@@ -258,6 +283,7 @@ class Analizador:
     def nombre_set(self):
         estado_actual = 'NS0'
         json = ''
+        lista_estadoUsados = []
 
         while self.lineas[self.index] != "":
         
@@ -363,8 +389,21 @@ class Analizador:
             elif estado_actual == 'NS19':
                 self.index -= 1
                 return json
+            
 
+            # Retornar error a la funcion al metodo compilador
+            if estado_actual == 'ERROR':
+                return 'ERROR'
+            
+            encontrado = False
+            for x in lista_estadoUsados:
+                if x == estado_actual:
+                    encontrado = True
+            if encontrado == False:
+                lista_estadoUsados.append(estado_actual)
+                json += self.tokenAutilizar
 
+            
             #INCREMENTAR POSICION
             if self.index < len(self.lineas) - 1:
                 self.index +=1
@@ -374,9 +413,12 @@ class Analizador:
 
 
 
+
     def nombre_autor(self):
         estado_actual = 'NA0'
         json = ''
+        lista_estadoUsados = []
+
 
         while self.lineas[self.index] != "":
         
@@ -392,6 +434,8 @@ class Analizador:
             # NA0 -> { NS1
             elif estado_actual == 'NA0':
                 estado_actual = self._token('{', 'NA0', 'NS1')
+                
+                
 
             # NS1 -> "nombre" NS2
             elif estado_actual == 'NS1':
@@ -459,19 +503,34 @@ class Analizador:
 
             elif estado_actual == 'NA13':
                 self.index -= 1
+                print(json)
                 return json
 
-
+            if estado_actual == 'ERROR':
+                return 'ERROR'
+            
+            
+            encontrado = False
+            for x in lista_estadoUsados:
+                if x == estado_actual:
+                    encontrado = True
+            if encontrado == False:
+                lista_estadoUsados.append(estado_actual)
+                json += self.tokenAutilizar
+            
             #INCREMENTAR POSICION
             if self.index < len(self.lineas) - 1:
                 self.index +=1
             else:
                 break
 
+            
+            
     def _compile(self):
         estado_actual = 'S0'
         funcionUsar = ''
         nombre = ''
+        contador_comandos = 0
         while self.lineas[self.index] != "":
             #print(f'CARACTER11 - {self.lineas[self.index] } | ESTADO - {estado_actual} | FILA - {self.fila}  | COLUMNA - {self.columna}')
             
@@ -559,9 +618,11 @@ class Analizador:
             if estado_actual == 'S9':
                 # es caso de que llegue a este paso debe hacer todas las operaciones
                 # y recetear el estado a S0 para que empiece de nuevo
-                print("\n ############ COMANDO COMPLETADO ############ \n")  
+                contador_comandos += 1
+                print(f"\n ############ COMANDO COMPLETADO ######  {contador_comandos} ###### \n")  
+                self.creadorComando(funcionUsar, self.identificador, self.json)
                 estado_actual = 'S0'
-                pass
+                
 
             
             
@@ -578,7 +639,36 @@ class Analizador:
             else:
                 break
 
-            
+    def creadorComando(self, funcionUso, nombre, json):
+        comando = ''
+        if funcionUso == 'CrearBD':
+            comando = 'use'
+        elif funcionUso == 'EliminarBD':
+            comando = f'db.dropDatabase();'
+        elif funcionUso == 'CrearColeccion':
+            comando = f"db.createCollection('{nombre}')"
+        elif funcionUso == 'EliminarColeccion':
+            comando = f'db.{nombre}.drop();'
+        elif funcionUso == 'InsertarUnico':
+            comando = f'db.{nombre}.insertOne({json});'
+        elif funcionUso == 'ActualizarUnico':
+            comando = f'db.{nombre}.updateOne({json});'
+        elif funcionUso == 'EliminarUnico':
+            comando = f'db.{nombre}.deleteOne({json});'
+        elif funcionUso == 'BuscarTodo':
+            comando = f'db.{nombre}.find();'
+        elif funcionUso == 'BuscarUnico':
+            comando = f'db.{nombre}.findOne();'
+
+
+
+        print(comando)
+
+        with open('archivo.txt', 'a', encoding='utf-8') as file:
+            file.write(f'{comando}\n') 
+
+
+
     def guardarErrores(self, token, fila, columna):
         self.ListaErrores.append({"token":token, "fila": fila, "columna":columna})
 
