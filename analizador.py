@@ -111,154 +111,6 @@ class Analizador:
             return False
     
 
-    def _operaciones(self, estado_sig):
-        estado_actual = 'S1'
-        hijo_derecho = ""
-        hijo_izquierdo = ""
-        operador = ""
-        funcionUsar = ''
-        while self.lineas[self.index] != "":
-            #print(f'CARACTER OP - {self.lineas[self.index] } | ESTADO - {estado_actual} | FILA - {self.fila}  | COLUMNA - {self.columna}')
-            print(self.lineas[self.index])
-            # IDENTIFICAR SALTO DE LINEA
-            if self.lineas[self.index] == '\n':
-                self.fila += 1
-                self.columna =0
-
-            # ************************
-            #         ESTADOS
-            # ************************
-
-            
-            # S1 -> "Funcion" S2
-            elif estado_actual == 'S1':
-                funciones = ['"CrearBD"','"EliminarBD"','"CrearColeccion"', '"EliminarColeccion"', '"InsertarUnico"', 
-                             '"ActualizarUnico"', '"EliminarUnico"', '"BuscarTodo"', '"BuscarUnico"']
-                for x in funciones:
-                    estado_actual = self._token(x, 'S1', 'S2')
-                    if estado_actual != 'ERROR':
-                        
-                        #Funcion encontrada satisfactoriamente
-                        funcionUsar = x
-                    
-                        
-            
-            # S2 -> : S3
-            elif estado_actual == 'S2':
-                estado_actual = self._token(':', 'S2', 'S3')
-
-            # S3 -> OPERADOR S4
-            elif estado_actual == 'S3':
-                operadores = ['"Suma"','"Resta"','"Multiplicacion"', '"Inverso"', '"Seno"']
-                for i in operadores:
-                    estado_actual = self._token(i, 'S3', 'S4')
-                    if estado_actual != 'ERROR':
-                        operador = i
-                        break
-
-            # S4 -> "Valor1" S5
-            elif estado_actual == 'S4':
-                estado_actual = self._token('"Valor1"', 'S4', 'S5')
-
-            # S5 -> : S6
-            elif estado_actual == 'S5':
-                estado_actual = self._token(':', 'S5', 'S6')
-
-            # S6 -> DIGITO S9 
-            #    | [ S7
-            elif estado_actual == 'S6':
-                estado_actual = self._token('[','S6','S7')
-                if estado_actual == 'ERROR':
-                    estado_actual = 'S9'
-                    a = self._digito('S9')
-                    if "ERROR" == a[0]:
-                        estado_actual = 'ERROR'
-                    elif a[0] == 'S9':
-                        hijo_izquierdo = a[1]
-
-            # S7 -> S1 S8
-            elif estado_actual == 'S7':
-                a = self._operaciones('S8')
-                estado_actual = a[0]
-                hijo_izquierdo = a[1]
-
-            # S8 -> ] S9
-            elif estado_actual == 'S8':
-                estado_actual = self._token(']','S8','S9')
-                
-
-            # S9 -> "Valor2" S10
-            elif estado_actual == 'S9':
-                if operador == '"Inverso"' or operador == '"Seno"':
-                    self.index -= 1
-                    # REALIZAR LA OPERACION ARITMETICA Y DEVOLVER UN SOLO VALOR
-                    print("\t*****OPERACION ARITMETICA*****")
-                    print('\t',operador ,'(',hijo_izquierdo ,')' )
-                    print('\t*******************************\n')
-                    op = operador +'('+hijo_izquierdo +')'
-                    return ['S14', op]  
-                else:
-                    estado_actual = self._token('"Valor2"', 'S9', 'S10')
-
-            # S10 -> : S11
-            elif estado_actual == 'S10':
-                estado_actual = self._token(':', 'S10', 'S11')
-
-            # S11 -> DIGITO S14 
-            #    | [ S12
-            elif estado_actual == 'S11':
-                estado_actual = self._token('[','S11','S12')
-                if estado_actual == 'ERROR':
-                    estado_actual = 'S14'
-                    a = self._digito('S14')
-                    if "ERROR" == a[0]:
-                        estado_actual = 'ERROR'
-                    elif 'S14' == a[0]:
-                        hijo_derecho = a[1]
-                        # REALIZAR LA OPERACION ARITMETICA Y DEVOLVER UN SOLO VALOR
-                        print("\t*****OPERACION ARITMETICA*****")
-                        print('\t',hijo_izquierdo , operador, hijo_derecho)
-                        print('\t*******************************\n')
-                        op = hijo_izquierdo + operador + hijo_derecho
-                        return [estado_sig, op]  
-
-            # S12 -> S1 S13
-            elif estado_actual == 'S12':
-                estado_actual = 'S13'
-                a = self._operaciones('S13')
-                hijo_derecho = a[1]
-                if "ERROR" == a[0]:
-                    estado_actual = 'ERROR'
-
-            # S13 -> ] S14
-            elif estado_actual == 'S13':
-                estado_actual = self._token(']','S13','S14')
-
-                # REALIZAR LA OPERACION ARITMETICA Y DEVOLVER UN SOLO VALOR
-                print("\t*****OPERACION ARITMETICA*****")
-                print('\t',hijo_izquierdo , operador, hijo_derecho)
-                print('\t*******************************\n')
-                op = hijo_izquierdo + operador + hijo_derecho
-                return [estado_sig, op]  
-
-
-
-            
-            # ERRORES 
-            if estado_actual == 'ERROR':
-                print("********************************")
-                print("\tERROR")
-                print("********************************")
-                # ERROR
-                self.guardarErrores(self.lineas[self.index], self.fila, self.columna)
-                return ['ERROR', -1]
-            
-            #INCREMENTAR POSICION
-            if self.index < len(self.lineas) - 1:
-                self.index +=1
-            else:
-                break
-
     def _atributo(self, funcion):
         estado_actual = 'A0'
         identificador = ''
@@ -301,7 +153,7 @@ class Analizador:
                 # busqueda de la coma
                 estado_actual = self._token(',', 'A3', 'A4')
                 if estado_actual == 'ERROR':
-                    #self.index -= 1
+                    self.index -= 1
                     return identificador
                       
             # A4 -> " A5
@@ -309,15 +161,17 @@ class Analizador:
                 # busqueda de la comilla doble
                 estado_actual = self._token('"', 'A4', 'A5')
 
-            
+            # A5 -> JSON A6
             elif estado_actual == 'A5':
-                
                 if funcion == "InsertarUnico":
                     sintaxisJson = self.nombre_autor()
+                
+                elif funcion == "EliminarUnico":
+                    sintaxisJson = self.nombre()
 
                 estado_actual = 'A6'
 
-                
+
             # A6 -> " A7
             elif estado_actual == 'A6':
                 # busqueda de la comilla doble
@@ -338,7 +192,68 @@ class Analizador:
             else:
                 break
 
-    
+    def nombre(self):
+        estado_actual = 'N0'
+        json = ''
+
+        while self.lineas[self.index] != "":
+        
+            # IDENTIFICAR SALTO DE LINEA
+            if self.lineas[self.index] == '\n':
+                self.fila += 1
+                self.columna =0
+
+            # ************************
+            #         ESTADOS
+            # ************************
+
+            # N0 -> { NA1
+            elif estado_actual == 'N0':
+                estado_actual = self._token('{', 'N0', 'N1')
+
+            # N1 -> "nombre" NA2
+            elif estado_actual == 'N1':
+                estado_actual = self._token('"nombre"', 'N1', 'N2')
+
+            # N2 -> : N3
+            elif estado_actual == 'N2':
+                estado_actual = self._token(':', 'N2', 'N3')
+
+            # N3 -> " N4
+            elif estado_actual == 'N3':
+                estado_actual = self._token('"', 'N3', 'N4')
+
+            # N4 -> texto N5
+            elif estado_actual == 'N4':
+                estado_actual = self._juntar_comillas()
+                if estado_actual != None:
+                    estado_actual = 'N5'  
+
+                else:
+                    print("Error en la estructura JSON, nombre")
+                    estado_actual = "ERROR"
+
+            # N5 -> " N6
+            elif estado_actual == 'N5':
+                estado_actual = self._token('"', 'N5', 'N6')
+
+            # N6 -> } N7
+            elif estado_actual == 'N6':
+                estado_actual = self._token('}', 'N6', 'N7')
+
+            elif estado_actual == 'N7':
+                self.index -= 1
+                return json
+            
+            #INCREMENTAR POSICION
+            if self.index < len(self.lineas) - 1:
+                self.index +=1
+            else:
+                break
+
+
+
+
     def nombre_autor(self):
         estado_actual = 'NA0'
         json = ''
@@ -375,11 +290,11 @@ class Analizador:
                 estado_actual = self._juntar_comillas()
                 if estado_actual != None:
 
-                    self.index -= 1
+                    #self.index -= 1
                     estado_actual = 'NA5'  
 
                 else:
-                    print("error en la lectura de texto")
+                    print("Error en la estructura JSON, nombre y autor")
                     estado_actual = "ERROR"
 
             # NA5 -> " NA6
@@ -407,18 +322,22 @@ class Analizador:
                 estado_actual = self._juntar_comillas()
                 if estado_actual != None:
 
-                    self.index -= 1
+                    #self.index -= 1
                     estado_actual = 'NA11'  
 
                 else:
-                    print("error en la lectura de texto")
+                    print("Error en la estructura JSON, nombre y autor")
                     estado_actual = "ERROR"
 
             # NA11 -> " NA12
             elif estado_actual == 'NA11':
                 estado_actual = self._token('"', 'NA11', 'NA12')
 
+            # NA12 -> } NA13
             elif estado_actual == 'NA12':
+                estado_actual = self._token('}', 'NA12', 'NA13')
+
+            elif estado_actual == 'NA13':
                 self.index -= 1
                 return json
 

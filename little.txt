@@ -1,1 +1,6 @@
-BuscarUnico todo = nueva BuscarUnico ("literaturas","hola");
+EliminarUnico eliminadoc = nueva EliminarUnico("literaturas",
+"
+{
+ "nombre" : "Obra Literaria"
+}
+");
