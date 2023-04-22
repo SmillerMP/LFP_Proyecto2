@@ -1,3 +1,5 @@
+from creacionTablas import generacionTokens
+
 texto = ''
 with open('archivoprueba.txt', 'r', encoding='utf-8') as archivo:
     # for lineas in archivo.readlines():
@@ -7,6 +9,9 @@ with open('archivoprueba.txt', 'r', encoding='utf-8') as archivo:
 # for x in texto:
 #     print(x)
 
+listaTokens  = []
+def get_listaTokens():
+        return listaTokens
 
 class Analizador:
     def __init__(self, entrada:str):
@@ -15,22 +20,29 @@ class Analizador:
         self.fila = 1 #FILA ACTUAL
         self.columna = 1 #COLUMNA ACTUAL
         self.ListaErrores = [] # LISTA PARA GUARDAR ERRORES
+        
         self.tokenAutilizar = ''
         self.json = ''
         self.identificador = ''
+        self.contadorToken = 0
 
     def _token(self, token:str, estado_actual:str, estado_sig:str):
+        lexema = ''
         if self.lineas[self.index] != " ":
             text = self._juntar(self.index, len(token))
             token_encontrado = self._analizar(token, text)
             if token_encontrado != False:
-                self.index += len(token) - 1
-                self.columna += len(token) - 1
+                self.index += len(token)-1
+                self.columna += len(token)
                 self.tokenAutilizar = token_encontrado
+                self.contadorToken += 1
+                self.guardadoTokens(self.tokenAutilizar, lexema)
+
                 return estado_sig
             else:
                 return 'ERROR'
         else:
+            self.columna += 1
             return estado_actual
 
     def _salto_linea(self):   
@@ -39,8 +51,10 @@ class Analizador:
             if self.index+1 < len(self.lineas):
                 if self.lineas[self.index] != "\n":
                     self.index += 1
+                    self.columna += 1
                 else:
                     self.fila += 1
+                    self.columna = 1
                     break
             else:
                 break
@@ -53,6 +67,8 @@ class Analizador:
                 if self.lineas[self.index] != '\n':
                     tmp += self.lineas[self.index]
                     self.index += 1
+                    self.columna += 1
+
                 
                 else:
                     tmp = ''
@@ -70,11 +86,13 @@ class Analizador:
         try:
             tmp = ''
             self.index += 1
+            self.columna += 1
             while self.lineas[self.index] != ' ':
                 if self.lineas[self.index] != '"':
                     if self.lineas[self.index] != '\n':
                         tmp += self.lineas[self.index]
                         self.index += 1
+                        self.columna += 1
                     
                     else:
                         tmp = ''
@@ -82,6 +100,7 @@ class Analizador:
                 else:
                     break
             print(f'********** ENCONTRE - {tmp} ***************')
+            self.columna += 1
             return tmp
         except:
             return None
@@ -126,7 +145,8 @@ class Analizador:
             # IDENTIFICAR SALTO DE LINEA
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna =0
+                self.columna = 1
+
 
             # A0 -> " A1
             elif estado_actual == 'A0':
@@ -215,7 +235,8 @@ class Analizador:
             # IDENTIFICAR SALTO DE LINEA
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna =0
+                self.columna = 1
+
 
             # ************************
             #         ESTADOS
@@ -290,7 +311,9 @@ class Analizador:
             # IDENTIFICAR SALTO DE LINEA
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna =0
+                self.columna = 1
+
+
 
             # ************************
             #         ESTADOS
@@ -425,7 +448,7 @@ class Analizador:
             # IDENTIFICAR SALTO DE LINEA
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna =0
+                self.columna = 1
 
             # ************************
             #         ESTADOS
@@ -537,7 +560,7 @@ class Analizador:
             # IDENTIFICAR SALTO DE LINEA
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna =0
+                self.columna = 1
 
             # ************************
             #         ESTADOS
@@ -642,7 +665,7 @@ class Analizador:
     def creadorComando(self, funcionUso, nombre, json):
         comando = ''
         if funcionUso == 'CrearBD':
-            comando = 'use'
+            comando = "use('LFP');"
         elif funcionUso == 'EliminarBD':
             comando = f'db.dropDatabase();'
         elif funcionUso == 'CrearColeccion':
@@ -667,11 +690,48 @@ class Analizador:
         with open('archivo.txt', 'a', encoding='utf-8') as file:
             file.write(f'{comando}\n') 
 
+    def guardadoTokens(self,tokenAnalisis, lexema):
 
+        if lexema != ' ':
+            if tokenAnalisis == '"':
+                lexema = 'comillas dobles'
+            elif tokenAnalisis == '=':
+                lexema = 'igual'
+            elif tokenAnalisis == '(':
+                lexema = 'parentesis de apertura'
+            elif tokenAnalisis == ')':
+                lexema = 'parentesis de cierre'
+            elif tokenAnalisis == ':':
+                lexema = 'dos puntos'
+            elif tokenAnalisis == ';':
+                lexema = 'punto y coma'
+            elif tokenAnalisis == ',':
+                lexema = 'coma'
+            elif tokenAnalisis == '"nombre"':
+                lexema = 'nombre'
+            elif tokenAnalisis == '"autor"':
+                lexema = 'autor'
+            elif tokenAnalisis == '$set':
+                lexema = 'set'
+            elif tokenAnalisis == '{':
+                lexema = 'llave de apertura'
+            elif tokenAnalisis == '}':
+                lexema = 'llave de cierre'
+            else:
+                lexema = tokenAnalisis
+        
+        tempDiccionario = {'contador': self.contadorToken, 'lexema': lexema, 'token': tokenAnalisis, 'fila': self.fila, 'columna': self.columna}
+        listaTokens.append(tempDiccionario)
+        
 
     def guardarErrores(self, token, fila, columna):
         self.ListaErrores.append({"token":token, "fila": fila, "columna":columna})
 
+def printearlista():
+    for x in listaTokens:
+        print(x)
 
 a = Analizador(texto)
 a._compile()
+printearlista()
+generacionTokens(listaTokens)

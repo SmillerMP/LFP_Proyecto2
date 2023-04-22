@@ -1,0 +1,2 @@
+En esta carpeta encontras todos los reportes que el programa vaya generando
+los archivos .dot de graphviz junto con sus pdf
