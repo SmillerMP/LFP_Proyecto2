@@ -15,16 +15,16 @@ def get_listaTokens():
 
 class Analizador:
     def __init__(self, entrada:str):
-        self.lineas = entrada #ENTRADA
-        self.index = 0 #POSICION DE CARACTERES EN LA ENTRADA
-        self.fila = 1 #FILA ACTUAL
-        self.columna = 1 #COLUMNA ACTUAL
-        self.ListaErrores = [] # LISTA PARA GUARDAR ERRORES
+        self.lineas = entrada # Texto analizar
+        self.index = 0 # Poscicion dentro de todo el texto
+        self.fila = 1 # Fila Actual
+        self.columna = 1 # Columna Actual
+        self.ListaErrores = [] # Lista de errores
         
-        self.tokenAutilizar = ''
-        self.json = ''
-        self.identificador = ''
-        self.contadorToken = 0
+        self.tokenAutilizar = '' # Token utilizado en el momentos
+        self.json = '' # sintaxis json para el comando mongoDb
+        self.identificador = ''  # indentificador para el comando
+        self.contadorToken = 0  # Contador de tokens encontrados
 
     def _token(self, token:str, estado_actual:str, estado_sig:str):
         lexema = ''
@@ -40,20 +40,45 @@ class Analizador:
 
                 return estado_sig
             else:
-                return 'ERROR'
+                if token == '/*' or token == '---':
+
+                    return 'ERROR'
+                else:
+                    return 'ERROR'
         else:
             self.columna += 1
             return estado_actual
 
+    def _leer_eternamente(self):
+        lexema = ''
+        while self.lineas[self.index] != "":
+            if self.index+1 < len(self.lineas):
+                if self.lineas[self.index] != "*" and self.lineas[self.index+1] != "/":
+                    if self.lineas[self.index] != "\n":
+                        self.index += 1
+                        self.columna += 1
+                    else:
+                        self.fila += 1
+                        self.columna = 1
+                        self.index += 1
+
+                else:
+                    self.index += 2
+                    self.columna += 2
+                    self.tokenAutilizar = '*/'
+                    self.contadorToken += 1
+                    self.guardadoTokens(self.tokenAutilizar, lexema)
+                    break
+            else:
+                break
+
     def _salto_linea(self):   
-        
         while self.lineas[self.index] != "":
             if self.index+1 < len(self.lineas):
                 if self.lineas[self.index] != "\n":
                     self.index += 1
                     self.columna += 1
                 else:
-                    self.fila += 1
                     self.columna = 1
                     break
             else:
@@ -61,6 +86,7 @@ class Analizador:
 
 
     def _juntar_comillas(self):
+        lexema = 'si'
         try:
             tmp = ''
             while self.lineas[self.index] != '"':
@@ -77,12 +103,15 @@ class Analizador:
             print(f'********** ENCONTRE - {tmp} ***************')
             self.index -= 1
             self.tokenAutilizar = tmp
+            self.contadorToken += 1
+            self.guardadoTokens(self.tokenAutilizar, lexema)
             return tmp
         except:
             return None
 
         
     def juntar_texto(self):
+        lexema = 'si'
         try:
             tmp = ''
             self.index += 1
@@ -101,6 +130,9 @@ class Analizador:
                     break
             print(f'********** ENCONTRE - {tmp} ***************')
             self.columna += 1
+            self.tokenAutilizar = tmp
+            self.contadorToken += 1
+            self.guardadoTokens(self.tokenAutilizar, lexema)
             return tmp
         except:
             return None
@@ -142,7 +174,7 @@ class Analizador:
         sintaxisJson = ''
 
         while self.lineas[self.index] != "":            
-            # IDENTIFICAR SALTO DE LINEA
+            # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
                 self.columna = 1
@@ -198,6 +230,7 @@ class Analizador:
                 elif funcion == "ActualizarUnico":
                     sintaxisJson = self.nombre_set()
 
+                # Guarda la sitaxis del JSON
                 self.json = sintaxisJson
                 estado_actual = 'A6'
 
@@ -212,11 +245,13 @@ class Analizador:
                 self.index -= 1
                 return identificador
 
-            if estado_actual == 'ERROR':
-                return estado_actual
+            
+            # if estado_actual == 'ERROR':
+            #     return estado_actual
             
             # Retornar error a la funcion al metodo compilador
             if estado_actual == 'ERROR' or sintaxisJson == 'ERROR':
+                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
 
             #INCREMENTAR POSICION
@@ -225,6 +260,7 @@ class Analizador:
             else:
                 break
 
+    # Retorna el JSON, o error al metodo atributo
     def nombre(self):
         estado_actual = 'N0'
         json = ''
@@ -232,7 +268,7 @@ class Analizador:
 
         while self.lineas[self.index] != "":
         
-            # IDENTIFICAR SALTO DE LINEA
+            # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
                 self.columna = 1
@@ -283,6 +319,7 @@ class Analizador:
             
             # Retornar error a la funcion al metodo compilador
             if estado_actual == 'ERROR':
+                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
             
 
@@ -300,7 +337,7 @@ class Analizador:
             else:
                 break
 
-
+    # Retorna el JSON, o error al metodo atributo
     def nombre_set(self):
         estado_actual = 'NS0'
         json = ''
@@ -308,7 +345,7 @@ class Analizador:
 
         while self.lineas[self.index] != "":
         
-            # IDENTIFICAR SALTO DE LINEA
+            # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
                 self.columna = 1
@@ -416,6 +453,7 @@ class Analizador:
 
             # Retornar error a la funcion al metodo compilador
             if estado_actual == 'ERROR':
+                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
             
             encontrado = False
@@ -433,10 +471,7 @@ class Analizador:
             else:
                 break
 
-
-
-
-
+    # Retorna el JSON, o error al metodo atributo
     def nombre_autor(self):
         estado_actual = 'NA0'
         json = ''
@@ -445,7 +480,7 @@ class Analizador:
 
         while self.lineas[self.index] != "":
         
-            # IDENTIFICAR SALTO DE LINEA
+            # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
                 self.columna = 1
@@ -530,9 +565,11 @@ class Analizador:
                 return json
 
             if estado_actual == 'ERROR':
+                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
             
             
+            # va agregando al json cada uno de los tokens encontrados
             encontrado = False
             for x in lista_estadoUsados:
                 if x == estado_actual:
@@ -552,14 +589,15 @@ class Analizador:
     def _compile(self):
         estado_actual = 'S0'
         funcionUsar = ''
-        nombre = ''
+        nombreBase = ''
         contador_comandos = 0
         while self.lineas[self.index] != "":
             #print(f'CARACTER11 - {self.lineas[self.index] } | ESTADO - {estado_actual} | FILA - {self.fila}  | COLUMNA - {self.columna}')
             
-            # IDENTIFICAR SALTO DE LINEA
+            # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
+                # Resetea el contador de columna a 1
                 self.columna = 1
 
             # ************************
@@ -569,6 +607,18 @@ class Analizador:
 
             # S0 -> "Funcion" S1
             elif estado_actual == 'S0':
+                # Verificacion de comentarios
+                comentario = self._token('---', 'S0', 'S0')
+                if comentario != 'ERROR':
+                    self._salto_linea()
+                    continue
+
+                comentario = self._token('/*', 'S0', 'S0')
+                if comentario != 'ERROR':
+                    self.index +=1
+                    self._leer_eternamente()
+                    continue
+
                 funciones = ['CrearBD','EliminarBD','CrearColeccion', 'EliminarColeccion', 'InsertarUnico', 
                              'ActualizarUnico', 'EliminarUnico', 'BuscarTodo', 'BuscarUnico']
                 for x in funciones:
@@ -586,7 +636,7 @@ class Analizador:
                 if estado_actual != None:
 
                     # nombre de la nueva accion
-                    nombre = estado_actual
+                    nombreBase = estado_actual
                     estado_actual = 'S2'
                 
                 else:
@@ -643,7 +693,7 @@ class Analizador:
                 # y recetear el estado a S0 para que empiece de nuevo
                 contador_comandos += 1
                 print(f"\n ############ COMANDO COMPLETADO ######  {contador_comandos} ###### \n")  
-                self.creadorComando(funcionUsar, self.identificador, self.json)
+                self.creadorComando(funcionUsar, nombreBase, self.identificador, self.json)
                 estado_actual = 'S0'
                 
 
@@ -651,7 +701,7 @@ class Analizador:
             
             # ERRORES 
             if estado_actual == 'ERROR':
-                #print('\t AQUI OCURRIO UN ERROR')
+                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 funcionUsar = ''
                 estado_actual = 'S0'
                 self._salto_linea()
@@ -662,10 +712,17 @@ class Analizador:
             else:
                 break
 
-    def creadorComando(self, funcionUso, nombre, json):
+    # Esta funcion crea los comandos traducidos a MongoDB
+    def creadorComando(self, funcionUso, nombreBase, nombre, json):
+        
+        # Cada if compara la funcion que encontro, y la traduce a lenguaje MongoDB
+        # en los casos donde el comando necesita de mas informacion, se le brinda a 
+        # travez de las variables nombre y json
+
+        # Json contiene la estrucutura que necesitan algunos comandos para funcionar
         comando = ''
         if funcionUso == 'CrearBD':
-            comando = "use('LFP');"
+            comando = f"use('{nombreBase}');"
         elif funcionUso == 'EliminarBD':
             comando = f'db.dropDatabase();'
         elif funcionUso == 'CrearColeccion':
@@ -690,9 +747,12 @@ class Analizador:
         with open('archivo.txt', 'a', encoding='utf-8') as file:
             file.write(f'{comando}\n') 
 
+    # Esta funcion guarda cada uno de los tokens encontrados durante el programa
+    # Los guada en una lista para ser recorridos posterioremente y graficarlos en una tabla
     def guardadoTokens(self,tokenAnalisis, lexema):
 
-        if lexema != ' ':
+        # cada elif compara el token y asigna su lexema
+        if lexema != 'si':
             if tokenAnalisis == '"':
                 lexema = 'comillas dobles'
             elif tokenAnalisis == '=':
@@ -717,10 +777,22 @@ class Analizador:
                 lexema = 'llave de apertura'
             elif tokenAnalisis == '}':
                 lexema = 'llave de cierre'
+            elif tokenAnalisis == '/*':
+                lexema = 'inicio comentario multilinea'
+            elif tokenAnalisis == '*/':
+                lexema = 'cierre comentario multilinea'
+            elif tokenAnalisis == '---':
+                lexema = 'comentario simple'
             else:
+                # en caso de que no exista un lexema para el token, el lexema sera igual al token
                 lexema = tokenAnalisis
-        
+        else: 
+            lexema = 'Cadena de Texto'
+
+        # Guarda en un diccionario temporal el contador, lexema del token, el token y su informacion de donde fue encontrado (fila y columna)
         tempDiccionario = {'contador': self.contadorToken, 'lexema': lexema, 'token': tokenAnalisis, 'fila': self.fila, 'columna': self.columna}
+        
+        # todos los diccionarios se agregan al final de la lista
         listaTokens.append(tempDiccionario)
         
 
