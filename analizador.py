@@ -9,10 +9,6 @@ with open('archivoprueba.txt', 'r', encoding='utf-8') as archivo:
 # for x in texto:
 #     print(x)
 
-listaTokens  = []
-def get_listaTokens():
-        return listaTokens
-
 class Analizador:
     def __init__(self, entrada:str):
         self.lineas = entrada # Texto analizar
@@ -25,6 +21,7 @@ class Analizador:
         self.json = '' # sintaxis json para el comando mongoDb
         self.identificador = ''  # indentificador para el comando
         self.contadorToken = 0  # Contador de tokens encontrados
+        self.listaTokens  = []
 
     def _token(self, token:str, estado_actual:str, estado_sig:str):
         lexema = ''
@@ -94,7 +91,6 @@ class Analizador:
                     tmp += self.lineas[self.index]
                     self.index += 1
                     self.columna += 1
-
                 
                 else:
                     tmp = ''
@@ -278,41 +274,56 @@ class Analizador:
             #         ESTADOS
             # ************************
 
-            # N0 -> { NS1
+            # N0 -> { N1
             elif estado_actual == 'N0':
                 estado_actual = self._token('{', 'N0', 'N1')
 
-            # N1 -> "nombre" NS2
+            # N1 -> " N2
             elif estado_actual == 'N1':
-                estado_actual = self._token('"nombre"', 'N1', 'N2')
+                estado_actual = self._token('"', 'N1', 'N2')
 
-            # N2 -> : N3
+            # N2 -> texto N3
             elif estado_actual == 'N2':
-                estado_actual = self._token(':', 'N2', 'N3')
-
-            # N3 -> " N4
-            elif estado_actual == 'N3':
-                estado_actual = self._token('"', 'N3', 'N4')
-
-            # N4 -> texto N5
-            elif estado_actual == 'N4':
                 estado_actual = self._juntar_comillas()
                 if estado_actual != None:
-                    estado_actual = 'N5'  
+                    estado_actual = 'N3'  
 
                 else:
                     print("Error en la estructura JSON, nombre")
                     estado_actual = "ERROR"
 
+            # N3 -> " N4
+            elif estado_actual == 'N3':
+                estado_actual = self._token('"', 'N3', 'N4')
+
+
+            # N4 -> : N5
+            elif estado_actual == 'N4':
+                estado_actual = self._token(':', 'N4', 'N5')
+
             # N5 -> " N6
             elif estado_actual == 'N5':
                 estado_actual = self._token('"', 'N5', 'N6')
 
-            # N6 -> } N7
+            # N6 -> texto N7
             elif estado_actual == 'N6':
-                estado_actual = self._token('}', 'N6', 'N7')
+                estado_actual = self._juntar_comillas()
+                if estado_actual != None:
+                    estado_actual = 'N7'  
 
+                else:
+                    print("Error en la estructura JSON, nombre")
+                    estado_actual = "ERROR"
+
+            # N7 -> " N8
             elif estado_actual == 'N7':
+                estado_actual = self._token('"', 'N7', 'N8')
+
+            # N8 -> } N9
+            elif estado_actual == 'N8':
+                estado_actual = self._token('}', 'N8', 'N9')
+
+            elif estado_actual == 'N9':
                 self.index -= 1
                 return json
             
@@ -356,67 +367,72 @@ class Analizador:
             #         ESTADOS
             # ************************
 
-            # NA0 -> { NS1
+            # NS0 -> { NS1
             elif estado_actual == 'NS0':
                 estado_actual = self._token('{', 'NS0', 'NS1')
 
-            # NS1 -> "nombre" NS2
+            # NS1 -> " NS2
             elif estado_actual == 'NS1':
-                estado_actual = self._token('"nombre"', 'NS1', 'NS2')
+                estado_actual = self._token('"', 'NS1', 'NS2')
 
-            # NS2 -> : NS3
+            # NS2 -> texto NS3
             elif estado_actual == 'NS2':
-                estado_actual = self._token(':', 'NS2', 'NS3')
-
-            # NS3 -> " NS4
-            elif estado_actual == 'NS3':
-                estado_actual = self._token('"', 'NS3', 'NS4')
-
-            # NS4 -> texto NS5
-            elif estado_actual == 'NS4':
                 estado_actual = self._juntar_comillas()
                 if estado_actual != None:
-                    estado_actual = 'NS5'  
-
+                    estado_actual = 'NS3'  
                 else:
                     print("Error en la estructura JSON, nombre y set")
                     estado_actual = "ERROR"
+
+            # NS3 -> " NS4
+            elif estado_actual == 'NS3':
+                estado_actual = self._token('"', 'NS3', 'NS4')     
+
+            # NS4 -> : NS5
+            elif estado_actual == 'NS4':
+                estado_actual = self._token(':', 'NS4', 'NS5')
 
             # NS5 -> " NS6
             elif estado_actual == 'NS5':
                 estado_actual = self._token('"', 'NS5', 'NS6')
 
-             # NS6 -> } NS7
+            # NS6 -> texto NS7
             elif estado_actual == 'NS6':
-                estado_actual = self._token('}', 'NS6', 'NS7')
+                estado_actual = self._juntar_comillas()
+                if estado_actual != None:
+                    estado_actual = 'NS7'  
 
-            # NS7 -> , NS8
+                else:
+                    print("Error en la estructura JSON, nombre y set")
+                    estado_actual = "ERROR"
+
+            # NS7 -> " NS8
             elif estado_actual == 'NS7':
-                estado_actual = self._token(',', 'NS7', 'NS8')
+                estado_actual = self._token('"', 'NS7', 'NS8')
 
-            # NS8 -> { NS9
+             # NS8 -> } NS9
             elif estado_actual == 'NS8':
-                estado_actual = self._token('{', 'NS8', 'NS9')
+                estado_actual = self._token('}', 'NS8', 'NS9')
 
-            # NS9 -> $SET NS10
+            # NS9 -> , NS10
             elif estado_actual == 'NS9':
-                estado_actual = self._token('$set', 'NS9', 'NS10')  
+                estado_actual = self._token(',', 'NS9', 'NS10')
 
-            # NS10 -> : NS11
+            # NS10 -> { NS11
             elif estado_actual == 'NS10':
-                estado_actual = self._token(':', 'NS10', 'NS11')
+                estado_actual = self._token('{', 'NS10', 'NS11')
 
-            # NS11 -> { NS12
+            # NS11 -> $SET NS12
             elif estado_actual == 'NS11':
-                estado_actual = self._token('{', 'NS11', 'NS12')
+                estado_actual = self._token('$set', 'NS11', 'NS12')  
 
-            # NS12 -> "autor" NS13
+            # NS12 -> : NS13
             elif estado_actual == 'NS12':
-                estado_actual = self._token('"autor"', 'NS12', 'NS13')
+                estado_actual = self._token(':', 'NS12', 'NS13')
 
-            # NS13 -> : NS14
+            # NS13 -> { NS14
             elif estado_actual == 'NS13':
-                estado_actual = self._token(':', 'NS13', 'NS14')
+                estado_actual = self._token('{', 'NS13', 'NS14')
 
             # NS14 -> " NS15
             elif estado_actual == 'NS14':
@@ -438,15 +454,39 @@ class Analizador:
             elif estado_actual == 'NS16':
                 estado_actual = self._token('"', 'NS16', 'NS17')
 
-            # NS17 -> } NS18
+            # NS17 -> : NS18
             elif estado_actual == 'NS17':
-                estado_actual = self._token('}', 'NS17', 'NS18')
-            
-            # NS18 -> } NS19
-            elif estado_actual == 'NS18':
-                estado_actual = self._token('}', 'NS18', 'NS19')
+                estado_actual = self._token(':', 'NS17', 'NS18')
 
+            # NS18 -> " NS19
+            elif estado_actual == 'NS18':
+                estado_actual = self._token('"', 'NS18', 'NS19')
+
+            # NS19 -> texto NS20
             elif estado_actual == 'NS19':
+                estado_actual = self._juntar_comillas()
+                if estado_actual != None:
+
+                    #self.index -= 1
+                    estado_actual = 'NS20'  
+
+                else:
+                    print("Error en la estructura JSON, nombre y autor")
+                    estado_actual = "ERROR"
+
+            # NS20 -> " NS21
+            elif estado_actual == 'NS20':
+                estado_actual = self._token('"', 'NS20', 'NS21')
+
+            # NS21 -> } NS22
+            elif estado_actual == 'NS21':
+                estado_actual = self._token('}', 'NS21', 'NS22')
+            
+            # NS22 -> } NS23
+            elif estado_actual == 'NS22':
+                estado_actual = self._token('}', 'NS22', 'NS23')
+
+            elif estado_actual == 'NS23':
                 self.index -= 1
                 return json
             
@@ -471,6 +511,7 @@ class Analizador:
             else:
                 break
 
+
     # Retorna el JSON, o error al metodo atributo
     def nombre_autor(self):
         estado_actual = 'NA0'
@@ -489,53 +530,60 @@ class Analizador:
             #         ESTADOS
             # ************************
 
-            # NA0 -> { NS1
+            # NA0 -> { NA1
             elif estado_actual == 'NA0':
-                estado_actual = self._token('{', 'NA0', 'NS1')
+                estado_actual = self._token('{', 'NA0', 'NA1')
                 
-                
+            # NA1 -> " NA2
+            elif estado_actual == 'NA1':
+                estado_actual = self._token('"', 'NA1', 'NA2')
 
-            # NS1 -> "nombre" NS2
-            elif estado_actual == 'NS1':
-                estado_actual = self._token('"nombre"', 'NS1', 'NS2')
-
-            # NS2 -> : NS3
-            elif estado_actual == 'NS2':
-                estado_actual = self._token(':', 'NS2', 'NS3')
-
-            # NS3 -> " NS4
-            elif estado_actual == 'NS3':
-                estado_actual = self._token('"', 'NS3', 'NS4')
-
-            # NS4 -> texto NS5
-            elif estado_actual == 'NS4':
+            # NA2 -> texto NA3
+            elif estado_actual == 'NA2':
                 estado_actual = self._juntar_comillas()
                 if estado_actual != None:
 
-                    #self.index -= 1
-                    estado_actual = 'NS5'  
+                    estado_actual = 'NA3'  
 
                 else:
                     print("Error en la estructura JSON, nombre y autor")
                     estado_actual = "ERROR"
 
-            # NS5 -> " NA6
-            elif estado_actual == 'NS5':
-                estado_actual = self._token('"', 'NS5', 'NA6')
+             # NA3 -> " NA4
+            elif estado_actual == 'NA3':
+                estado_actual = self._token('"', 'NA3', 'NA4')
 
-            # NA6 -> , NA7
+
+            # NA4 -> : NA5
+            elif estado_actual == 'NA4':
+                estado_actual = self._token(':', 'NA4', 'NA5')
+
+            # NA5 -> " NA6
+            elif estado_actual == 'NA5':
+                estado_actual = self._token('"', 'NA5', 'NA6')
+
+            # NA6 -> texto NA7
             elif estado_actual == 'NA6':
-                estado_actual = self._token(',', 'NA6', 'NA7')
+                estado_actual = self._juntar_comillas()
+                if estado_actual != None:
 
-            # NA7 -> "autor" NA8
+                    estado_actual = 'NA7'  
+
+                else:
+                    print("Error en la estructura JSON, nombre y autor")
+                    estado_actual = "ERROR"
+
+            # NA7 -> " NA8
             elif estado_actual == 'NA7':
-                estado_actual = self._token('"autor"', 'NA7', 'NA8')
+                estado_actual = self._token('"', 'NA7', 'NA8')
 
-            # NA8 -> : NA9
+            # NA8 -> , NA9
             elif estado_actual == 'NA8':
-                estado_actual = self._token(':', 'NA8', 'NA9')
+                estado_actual = self._token(',', 'NA8', 'NA9')
 
-            #NA9 -> " NA10
+            
+
+            # NA9 -> " NA10
             elif estado_actual == 'NA9':
                 estado_actual = self._token('"', 'NA9', 'NA10')
 
@@ -543,23 +591,44 @@ class Analizador:
             elif estado_actual == 'NA10':
                 estado_actual = self._juntar_comillas()
                 if estado_actual != None:
+                    estado_actual = 'NA11'  
+                else:
+                    print("Error en la estructura JSON, nombre y autor")
+                    estado_actual = "ERROR"
+
+             # NA11 -> " NA12
+            elif estado_actual == 'NA11':
+                estado_actual = self._token('"', 'NA11', 'NA12')
+
+            # NA12 -> : NA13
+            elif estado_actual == 'NA12':
+                estado_actual = self._token(':', 'NA12', 'NA13')
+
+            # NA13 -> " NA14
+            elif estado_actual == 'NA13':
+                estado_actual = self._token('"', 'NA13', 'NA14')
+
+            # NA14 -> texto NA15
+            elif estado_actual == 'NA14':
+                estado_actual = self._juntar_comillas()
+                if estado_actual != None:
 
                     #self.index -= 1
-                    estado_actual = 'NA11'  
+                    estado_actual = 'NA15'  
 
                 else:
                     print("Error en la estructura JSON, nombre y autor")
                     estado_actual = "ERROR"
 
-            # NA11 -> " NA12
-            elif estado_actual == 'NA11':
-                estado_actual = self._token('"', 'NA11', 'NA12')
+            # NA15 -> " NA16
+            elif estado_actual == 'NA15':
+                estado_actual = self._token('"', 'NA15', 'NA16')
 
-            # NA12 -> } NA13
-            elif estado_actual == 'NA12':
-                estado_actual = self._token('}', 'NA12', 'NA13')
+            # NA16 -> } NA17
+            elif estado_actual == 'NA16':
+                estado_actual = self._token('}', 'NA16', 'NA17')
 
-            elif estado_actual == 'NA13':
+            elif estado_actual == 'NA17':
                 self.index -= 1
                 print(json)
                 return json
@@ -787,23 +856,22 @@ class Analizador:
                 # en caso de que no exista un lexema para el token, el lexema sera igual al token
                 lexema = tokenAnalisis
         else: 
-            lexema = 'Cadena de Texto'
+            lexema = 'cadena de texto'
 
         # Guarda en un diccionario temporal el contador, lexema del token, el token y su informacion de donde fue encontrado (fila y columna)
         tempDiccionario = {'contador': self.contadorToken, 'lexema': lexema, 'token': tokenAnalisis, 'fila': self.fila, 'columna': self.columna}
         
         # todos los diccionarios se agregan al final de la lista
-        listaTokens.append(tempDiccionario)
+        self.listaTokens.append(tempDiccionario)
         
 
     def guardarErrores(self, token, fila, columna):
         self.ListaErrores.append({"token":token, "fila": fila, "columna":columna})
 
-def printearlista():
-    for x in listaTokens:
-        print(x)
 
-a = Analizador(texto)
-a._compile()
-printearlista()
-generacionTokens(listaTokens)
+
+# a = Analizador(texto)
+# a._compile()
+# for x in a.listaTokens:
+#     print(x)
+# generacionTokens(a.listaTokens)
