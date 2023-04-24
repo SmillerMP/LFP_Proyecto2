@@ -1,4 +1,4 @@
-from creacionTablas import generacionTokens
+from creacionTablas import *
 
 texto = ''
 with open('archivoprueba.txt', 'r', encoding='utf-8') as archivo:
@@ -909,7 +909,9 @@ a = Analizador(texto)
 a._compile()
 for x in a.listaTokens:
     print(x)
-# generacionTokens(a.listaTokens)
+#generacionTokens(a.listaTokens)
 
 for i in a.ListaErrores:
     print(i)
+
+#generacionErrores(a.ListaErrores)
