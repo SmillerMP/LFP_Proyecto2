@@ -21,7 +21,15 @@ class Analizador:
         self.json = '' # sintaxis json para el comando mongoDb
         self.identificador = ''  # indentificador para el comando
         self.contadorToken = 0  # Contador de tokens encontrados
-        self.listaTokens  = []
+        self.listaTokens  = []  # Lista con todos los tokens
+        self.textoError = ''    # 
+        self.listaComandos = []
+        
+        self.tipoDeError = ''  # Guarda el tipo de error, lexico o sintactico
+        self.contadorErrores = 0
+        # Una lista con todos los posibles tokens
+        self.listaTodosTokes = ['CrearBD','EliminarBD','CrearColeccion', 'EliminarColeccion', 'InsertarUnico', 'ActualizarUnico', 'EliminarUnico', 'BuscarTodo', 
+                                'BuscarUnico', 'nueva', '"', '=', '(', ')', ':', ';', ',', '$set', '{', '}', '/*', '*/', '---']
 
     def _token(self, token:str, estado_actual:str, estado_sig:str):
         lexema = ''
@@ -38,10 +46,11 @@ class Analizador:
                 return estado_sig
             else:
                 if token == '/*' or token == '---':
-
                     return 'ERROR'
                 else:
+                    self.tokenAutilizar = token
                     return 'ERROR'
+                
         else:
             self.columna += 1
             return estado_actual
@@ -77,10 +86,11 @@ class Analizador:
                     self.columna += 1
                 else:
                     self.columna = 1
+                    
                     break
             else:
                 break
-
+ 
 
     def _juntar_comillas(self):
         lexema = 'si'
@@ -96,7 +106,7 @@ class Analizador:
                     tmp = ''
                     return 'ERROR'
         
-            print(f'********** ENCONTRE - {tmp} ***************')
+            #print(f'********** ENCONTRE - {tmp} ***************')
             self.index -= 1
             self.tokenAutilizar = tmp
             self.contadorToken += 1
@@ -124,7 +134,7 @@ class Analizador:
                         return 'ERROR'
                 else:
                     break
-            print(f'********** ENCONTRE - {tmp} ***************')
+            #print(f'********** ENCONTRE - {tmp} ***************')
             self.columna += 1
             self.tokenAutilizar = tmp
             self.contadorToken += 1
@@ -138,7 +148,10 @@ class Analizador:
         try:
             tmp = ''
             for i in range(_index, _index + _count):
-                tmp += self.lineas[i]
+                if self.lineas[i] != ' ':
+                    tmp += self.lineas[i]
+                else:
+                    break
             return tmp
         except:
             return None
@@ -147,18 +160,42 @@ class Analizador:
         try:
             count = 0
             tokem_tmp = ""
-            for i in texto:
-                #CUANDO LA LETRA HAGA MATCH CON EL TOKEN ENTRA
-                #print('COMBINACION -> ',i , '==', token[count])
-                if str(i) == str(token[count]):
-                    tokem_tmp += i  
-                    count += 1 
-                else:
-                    #print('ERROR1')
-                    return False
-                
-            print(f'********** ENCONTRE - {tokem_tmp} ***************')
-            return tokem_tmp
+            if len(str(token)) == len(str(texto)):
+                for i in texto:
+                    #CUANDO LA LETRA HAGA MATCH CON EL TOKEN ENTRA
+                    #print('COMBINACION -> ',i , '==', token[count])
+                    if str(i) == str(token[count]):
+                        tokem_tmp += i  
+                        count += 1 
+                    else:
+                        #print('ERROR1')
+                        encontrado = False
+                        for x in self.listaTodosTokes:
+                            if x == texto:
+                                encontrado = True
+                                self.tipoDeError = 'Sintactico'
+                                break
+                        if encontrado == False:
+                            self.tipoDeError = 'Lexico'
+
+                        self.textoError = texto
+                        return False
+                    
+                #print(f'********** ENCONTRE - {tokem_tmp} ***************')
+                return tokem_tmp
+            else:
+                # Error en caso de que el tama;o del token no sea el mismo que el tama;o del texto
+                encontrado = False
+                for x in self.listaTodosTokes:
+                    if x == texto:
+                        encontrado = True
+                        self.tipoDeError = 'Sintactico'
+                        break
+                if encontrado == False:
+                    self.tipoDeError = 'Lexico'
+
+                self.textoError = texto
+                return False
         except:
             #print('ERROR2')
             return False
@@ -689,7 +726,7 @@ class Analizador:
                     continue
 
                 funciones = ['CrearBD','EliminarBD','CrearColeccion', 'EliminarColeccion', 'InsertarUnico', 
-                             'ActualizarUnico', 'EliminarUnico', 'BuscarTodo', 'BuscarUnico']
+                             'ActualizarUnico', 'EliminarUnico', 'BuscarTodo', 'BuscarUnico', '0_Coincidencias']
                 for x in funciones:
                     estado_actual = self._token(x, 'S0', 'S1')
                     if estado_actual != 'ERROR':
@@ -731,13 +768,13 @@ class Analizador:
                 estado_actual = self._token(funcionUsar, 'S4', 'S5')
 
 
-            # S5 -> Funcion S6
+            # S5 -> ( S6
             elif estado_actual == 'S5':
                 # busqueda del parentesis de apertura
                 estado_actual = self._token('(', 'S5', 'S6')
 
 
-            # S6 -> Funcion S8
+            # S6 -> ) S8
             elif estado_actual == 'S6':
                 # busqueda del parentesis de cerrar
                 estado_actual = self._token(')', 'S6', 'S8')
@@ -771,9 +808,12 @@ class Analizador:
             # ERRORES 
             if estado_actual == 'ERROR':
                 print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
+                self.contadorErrores += 1
+                self.guardarErrores(self.contadorErrores, self.textoError, self.tokenAutilizar, self.tipoDeError, self.fila, self.columna)
                 funcionUsar = ''
                 estado_actual = 'S0'
                 self._salto_linea()
+                continue
             
             #INCREMENTAR POSICION
             if self.index < len(self.lineas) - 1:
@@ -809,12 +849,9 @@ class Analizador:
         elif funcionUso == 'BuscarUnico':
             comando = f'db.{nombre}.findOne();'
 
-
-
         print(comando)
-
-        with open('archivo.txt', 'a', encoding='utf-8') as file:
-            file.write(f'{comando}\n') 
+        self.listaComandos.append(comando)
+        
 
     # Esta funcion guarda cada uno de los tokens encontrados durante el programa
     # Los guada en una lista para ser recorridos posterioremente y graficarlos en una tabla
@@ -836,10 +873,6 @@ class Analizador:
                 lexema = 'punto y coma'
             elif tokenAnalisis == ',':
                 lexema = 'coma'
-            elif tokenAnalisis == '"nombre"':
-                lexema = 'nombre'
-            elif tokenAnalisis == '"autor"':
-                lexema = 'autor'
             elif tokenAnalisis == '$set':
                 lexema = 'set'
             elif tokenAnalisis == '{':
@@ -852,6 +885,8 @@ class Analizador:
                 lexema = 'cierre comentario multilinea'
             elif tokenAnalisis == '---':
                 lexema = 'comentario simple'
+            elif tokenAnalisis == 'nueva':
+                lexema = 'nueva'
             else:
                 # en caso de que no exista un lexema para el token, el lexema sera igual al token
                 lexema = tokenAnalisis
@@ -865,13 +900,16 @@ class Analizador:
         self.listaTokens.append(tempDiccionario)
         
 
-    def guardarErrores(self, token, fila, columna):
-        self.ListaErrores.append({"token":token, "fila": fila, "columna":columna})
+    def guardarErrores(self, contador, tokenError, tokenEsperado, tipoDeError, fila, columna):
+        self.ListaErrores.append({'contador': contador, "token_Error":tokenError, 'token_esperado':tokenEsperado, 'tipoError':tipoDeError ,"fila": fila, "columna":columna})
 
 
 
-# a = Analizador(texto)
-# a._compile()
-# for x in a.listaTokens:
-#     print(x)
+a = Analizador(texto)
+a._compile()
+for x in a.listaTokens:
+    print(x)
 # generacionTokens(a.listaTokens)
+
+for i in a.ListaErrores:
+    print(i)

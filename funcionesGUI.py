@@ -4,6 +4,7 @@ from tkinter import filedialog
 import tkinter as tk
 from tkinter import messagebox as MessageBox
 from analizador import *
+from creacionTablas import *
 
 rutaArchivo = None
 rutaGuardado = None
@@ -21,6 +22,37 @@ def visualizarManualUsuario():
 def analizador(cajaTexto):
     contenido = cajaTexto.get('1.0', tk.END)
 
+    if not contenido.strip():
+        MessageBox.showerror("Error", "No hay texto por analizar")
+        return False
+    else:
+        global comandos
+        comandos = Analizador(contenido)
+        comandos._compile()
+    
+
+
+
+def printerCaja(cajaTexto):
+    try:
+        cajaTexto.insert(tk.END, f"Se han encotrado {len(comandos.listaComandos)} comandos" + "\n\n\n")
+        for x in comandos.listaComandos:
+            cajaTexto.insert(tk.END, x + "\n\n")
+    except:
+        MessageBox.showerror("ERROR", "Asegurese de ingresar datos al editor de texto")
+    
+
+def tokens():
+
+    try:
+        if comandos.listaTokens != []:
+            generacionTokens(comandos.listaTokens)
+        else:
+            MessageBox.showerror("ERROR", "No hay tokens cargados en memoria, asegurese de analizar previamente")
+
+    except:
+        MessageBox.showinfo("Advertencia", "No se ha compilado ningun archivo")
+    
 
 def abrir_Archivo(cajaTexto):
 
@@ -60,9 +92,16 @@ def limpiar(cajaTexto):
 
     if confirmacion:
         cajaTexto.delete('1.0', tk.END)
-        MessageBox.showinfo("Mensaje", "Limpieza realizada con Exito!")
-
-
+        try:
+            comandos.listaTokens = []
+            comandos.ListaErrores = []
+            comandos.json = ''
+            comandos.tokenAutilizar = ''
+            comandos.contadorToken = 0
+            MessageBox.showinfo("Mensaje", "Limpieza realizada con Exito!")
+        except:
+            MessageBox.showinfo("Advertencia", "No se ha compilado ningun archivo. Limpieza realizada con Exito!")
+    
 
 # Guardar el texto en la ruta especificada anteriormente
 def guardar(cajaTexto):
