@@ -31,8 +31,6 @@ def analizador(cajaTexto):
         comandos._compile()
     
 
-
-
 def printerCaja(cajaTexto):
     try:
         cajaTexto.insert(tk.END, f"Se han encotrado {len(comandos.listaComandos)} comandos" + "\n\n\n")
@@ -41,6 +39,14 @@ def printerCaja(cajaTexto):
     except:
         MessageBox.showerror("ERROR", "Asegurese de ingresar datos al editor de texto")
     
+
+
+def errores():
+    try:
+        generacionErrores(comandos.ListaErrores)
+
+    except:
+        MessageBox.showinfo("Advertencia", "No se ha compilado ningun archivo")
 
 def tokens():
 
