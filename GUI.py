@@ -53,6 +53,11 @@ def botonAnalizar():
         caja_comandos.config(yscrollcommand=scrollbarEditor.set)
         printerCaja(caja_comandos)
 
+def actualizar_label():
+    linea, columna = caja_editor.index(tk.INSERT).split('.')
+    texto = f"Línea: {linea} | Columna: {columna}"
+    posicion.config(text=texto)
+    caja_editor.after(100, actualizar_label)
 
 ventana_principal = tk.Tk()
 ventana_principal.geometry("942x552+401+217")
@@ -78,15 +83,21 @@ Label1.configure(highlightbackground="#d9d9d9")
 Label1.configure(highlightcolor="black")
 Label1.configure(text='''Proyecto 2 Lenguajes Formales''')
 
+posicion = tk.Label(ventana_principal, text="Línea: 1 | Columna: 0")
+posicion.place(relx=0.38, rely=0.92)
 
 caja_editor = tk.Text()
 caja_editor.place(relx=0.032, rely=0.127, height=438, relwidth=0.471)
 caja_editor.configure(font="-family {Calibri} -size 11")
+caja_editor.bind("<Key>", lambda event: caja_editor.after(100, actualizar_label))
+caja_editor.bind("<Button-1>", lambda event: caja_editor.after(100, actualizar_label))
+actualizar_label()
 
 scrollbarEditor = tk.Scrollbar(ventana_principal, command=caja_editor.yview)
 scrollbarEditor.place(x=474, y=69, height=439)
 # configura el widget Text para que use el scrollbar vertical
 caja_editor.config(yscrollcommand=scrollbarEditor.set)
+
 
 
 boton_abrir = tk.Button()

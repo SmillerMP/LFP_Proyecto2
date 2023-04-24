@@ -14,7 +14,7 @@ class Analizador:
         self.lineas = entrada # Texto analizar
         self.index = 0 # Poscicion dentro de todo el texto
         self.fila = 1 # Fila Actual
-        self.columna = 1 # Columna Actual
+        self.columna = 0 # Columna Actual
         self.ListaErrores = [] # Lista de errores
         
         self.tokenAutilizar = '' # Token utilizado en el momentos
@@ -65,7 +65,7 @@ class Analizador:
                         self.columna += 1
                     else:
                         self.fila += 1
-                        self.columna = 1
+                        self.columna = 0
                         self.index += 1
 
                 else:
@@ -85,7 +85,7 @@ class Analizador:
                     self.index += 1
                     self.columna += 1
                 else:
-                    self.columna = 1
+                    self.columna = 0
                     
                     break
             else:
@@ -210,7 +210,7 @@ class Analizador:
             # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna = 1
+                self.columna = 0
 
 
             # A0 -> " A1
@@ -304,7 +304,7 @@ class Analizador:
             # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna = 1
+                self.columna = 0
 
 
             # ************************
@@ -396,7 +396,7 @@ class Analizador:
             # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna = 1
+                self.columna = 0
 
 
 
@@ -561,7 +561,7 @@ class Analizador:
             # Identifica saltos de linea
             if self.lineas[self.index] == '\n':
                 self.fila += 1
-                self.columna = 1
+                self.columna = 0
 
             # ************************
             #         ESTADOS
@@ -704,7 +704,7 @@ class Analizador:
             if self.lineas[self.index] == '\n':
                 self.fila += 1
                 # Resetea el contador de columna a 1
-                self.columna = 1
+                self.columna = 0
 
             # ************************
             #         ESTADOS
@@ -905,13 +905,13 @@ class Analizador:
 
 
 
-a = Analizador(texto)
-a._compile()
-for x in a.listaTokens:
-    print(x)
-#generacionTokens(a.listaTokens)
+# a = Analizador(texto)
+# a._compile()
+# for x in a.listaTokens:
+#     print(x)
+# #generacionTokens(a.listaTokens)
 
-for i in a.ListaErrores:
-    print(i)
+# for i in a.ListaErrores:
+#     print(i)
 
-#generacionErrores(a.ListaErrores)
+# #generacionErrores(a.ListaErrores)
