@@ -6,8 +6,8 @@ from tkinter import messagebox as MessageBox
 from analizador import *
 from creacionTablas import *
 
+
 rutaArchivo = None
-rutaGuardado = None
 
 def temasAyuda():
     os.startfile("Documentos\Temas.pdf")
@@ -48,21 +48,16 @@ def errores():
     except:
         MessageBox.showinfo("Advertencia", "No se ha compilado ningun archivo")
 
+
 def tokens():
-
     try:
-        if comandos.listaTokens != []:
-            generacionTokens(comandos.listaTokens)
-        else:
-            MessageBox.showerror("ERROR", "No hay tokens cargados en memoria, asegurese de analizar previamente")
-
+        generacionTokens(comandos.listaTokens)
     except:
         MessageBox.showinfo("Advertencia", "No se ha compilado ningun archivo")
     
 
 def abrir_Archivo(cajaTexto):
 
-    # Variable global para uso en otras funciones
     global rutaArchivo
 
     rutaArchivo = filedialog.askopenfilename(
@@ -75,8 +70,8 @@ def abrir_Archivo(cajaTexto):
 
     if rutaArchivo:
         try:
-            # Lectura del archivo y escritura en la caja de texto
-            with open(rutaArchivo, 'r') as lineas:
+            # Lectura del archivo y escritura en la caja de texto 
+            with open(rutaArchivo, 'r', encoding="utf-8") as lineas:
                 content = lineas.read()
 
                 #cajaTexto.delete('1.0', tk.END)
@@ -112,44 +107,57 @@ def limpiar(cajaTexto):
 # Guardar el texto en la ruta especificada anteriormente
 def guardar(cajaTexto):
 
+    global rutaArchivo
+
     # Verifica que exista una ruta para guardar el archivo
     if rutaArchivo == None:
-        MessageBox.showerror("Error", "No se ha encontrado una ruta para guardar el archivo!")
+        MessageBox.showwarning("Sin Ruta", "No hay una ruta especificada para guardar el archivo, Ingrese una nueva ruta")
+        
+        rutaArchivo = filedialog.asksaveasfilename(
+         filetypes={
+            ("Todos los archivos", "*.*")
+            }
+        )
+
+        if rutaArchivo:
+            with open(rutaArchivo, 'w', encoding="utf-8") as lineas:
+                contenido = cajaTexto.get("1.0", tk.END)
+                lineas.write(contenido)
+                MessageBox.showinfo("Mensaje", "Se guardo correctamente los datos en la ruta: " + str(rutaArchivo))
+
+        else:
+            MessageBox.showwarning("Alerta", "No se completo el guardado")
+
+        
+        
 
     # En caso que se haya elegido una nueva ruta para guardar el archivo apartir de ahora guardara en esa ruta
-    elif rutaGuardado != None:
+    elif rutaArchivo != None:
 
-        with open(rutaGuardado, 'w') as lineas:
-            contenido = cajaTexto.get("1.0", tk.END)
-            lineas.write(contenido)
-            MessageBox.showinfo("Mensaje", "Se guardo correctamente los datos en la ruta: " + str(rutaGuardado))
-
-    else:
-        # Abre el archivo y escribe todos los datos existentes en la caja de texto, en caso de que sea la ruta del archivo cargado
-        with open(rutaArchivo, 'w') as lineas:
+        with open(rutaArchivo, 'w', encoding="utf-8") as lineas:
             contenido = cajaTexto.get("1.0", tk.END)
             lineas.write(contenido)
             MessageBox.showinfo("Mensaje", "Se guardo correctamente los datos en la ruta: " + str(rutaArchivo))
 
 
 
+
 # Funcion para elegir el nombre y la ruta para guardar el archivo
 def guardarComo(cajaTexto):
+    global rutaArchivo
 
-    global rutaGuardado
-
-    rutaGuardado = filedialog.asksaveasfilename(
+    rutaArchivo = filedialog.asksaveasfilename(
          filetypes={
             ("Todos los archivos", "*.*")
         }
     )
 
-    if rutaGuardado:
-
-        with open(rutaGuardado, 'w') as lineas:
+    if rutaArchivo:
+        print(rutaArchivo)
+        with open(rutaArchivo, 'w', encoding="utf-8") as lineas:
             contenido = cajaTexto.get("1.0", tk.END)
             lineas.write(contenido)
-            MessageBox.showinfo("Mensaje", "Se guardo correctamente los datos en la ruta: " + str(rutaGuardado))
+            MessageBox.showinfo("Mensaje", "Se guardo correctamente los datos en la ruta: " + str(rutaArchivo))
 
     else:
         MessageBox.showwarning("Alerta", "No se completo el guardado")

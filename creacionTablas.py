@@ -1,5 +1,4 @@
 import os
-#from analizador import get_listaTokens
 
 def generacionTokens(lista):
     #lista = get_listaTokens()

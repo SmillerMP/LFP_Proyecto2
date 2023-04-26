@@ -1,13 +1,5 @@
 from creacionTablas import *
 
-texto = ''
-with open('archivoprueba.txt', 'r', encoding='utf-8') as archivo:
-    # for lineas in archivo.readlines():
-    #     texto += lineas
-    texto = archivo.read()
-        
-# for x in texto:
-#     print(x)
 
 class Analizador:
     def __init__(self, entrada:str):
@@ -22,9 +14,9 @@ class Analizador:
         self.identificador = ''  # indentificador para el comando
         self.contadorToken = 0  # Contador de tokens encontrados
         self.listaTokens  = []  # Lista con todos los tokens
-        self.textoError = ''    # 
-        self.listaComandos = []
-        
+        self.listaComandos = [] # Lista con todos os comandos generados
+
+        self.textoError = ''    # Texto que da error con el token analizado
         self.tipoDeError = ''  # Guarda el tipo de error, lexico o sintactico
         self.contadorErrores = 0
         # Una lista con todos los posibles tokens
@@ -548,7 +540,6 @@ class Analizador:
             else:
                 break
 
-
     # Retorna el JSON, o error al metodo atributo
     def nombre_autor(self):
         estado_actual = 'NA0'
@@ -737,7 +728,6 @@ class Analizador:
 
             # S1 -> ID S2
             elif estado_actual == 'S1':
-                #print("ESTO DE ULTIMO")
                 estado_actual = self.juntar_texto()
                 if estado_actual != None:
 
@@ -903,15 +893,3 @@ class Analizador:
     def guardarErrores(self, contador, tokenError, tokenEsperado, tipoDeError, fila, columna):
         self.ListaErrores.append({'contador': contador, "token_Error":tokenError, 'token_esperado':tokenEsperado, 'tipoError':tipoDeError ,"fila": fila, "columna":columna})
 
-
-
-# a = Analizador(texto)
-# a._compile()
-# for x in a.listaTokens:
-#     print(x)
-# #generacionTokens(a.listaTokens)
-
-# for i in a.ListaErrores:
-#     print(i)
-
-# #generacionErrores(a.ListaErrores)
