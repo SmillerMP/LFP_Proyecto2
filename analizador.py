@@ -217,7 +217,7 @@ class Analizador:
                     # nombre del identificador
                     identificador = estado_actual
                     self.identificador = identificador
-                    print(identificador)
+                    #print(identificador)
                     estado_actual = 'A2'  
 
                 else:
@@ -276,7 +276,7 @@ class Analizador:
             
             # Retornar error a la funcion al metodo compilador
             if estado_actual == 'ERROR' or sintaxisJson == 'ERROR':
-                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
+                #print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
 
             #INCREMENTAR POSICION
@@ -359,7 +359,7 @@ class Analizador:
             
             # Retornar error a la funcion al metodo compilador
             if estado_actual == 'ERROR':
-                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
+                #print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
             
 
@@ -522,7 +522,7 @@ class Analizador:
 
             # Retornar error a la funcion al metodo compilador
             if estado_actual == 'ERROR':
-                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
+                #print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
             
             encontrado = False
@@ -658,11 +658,11 @@ class Analizador:
 
             elif estado_actual == 'NA17':
                 self.index -= 1
-                print(json)
+                #print(json)
                 return json
 
             if estado_actual == 'ERROR':
-                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
+                #print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 return 'ERROR'
             
             
@@ -788,7 +788,7 @@ class Analizador:
                 # es caso de que llegue a este paso debe hacer todas las operaciones
                 # y recetear el estado a S0 para que empiece de nuevo
                 contador_comandos += 1
-                print(f"\n ############ COMANDO COMPLETADO ######  {contador_comandos} ###### \n")  
+                #print(f"\n ############ COMANDO COMPLETADO ######  {contador_comandos} ###### \n")  
                 self.creadorComando(funcionUsar, nombreBase, self.identificador, self.json)
                 estado_actual = 'S0'
                 
@@ -797,7 +797,7 @@ class Analizador:
             
             # ERRORES 
             if estado_actual == 'ERROR':
-                print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
+                #print('\n\n+++++++++++++++ ERROR +++++++++++++++\n\n')
                 self.contadorErrores += 1
                 self.guardarErrores(self.contadorErrores, self.textoError, self.tokenAutilizar, self.tipoDeError, self.fila, self.columna)
                 funcionUsar = ''
@@ -839,7 +839,7 @@ class Analizador:
         elif funcionUso == 'BuscarUnico':
             comando = f'db.{nombre}.findOne();'
 
-        print(comando)
+        #print(comando)
         self.listaComandos.append(comando)
         
 

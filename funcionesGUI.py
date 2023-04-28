@@ -6,7 +6,7 @@ from tkinter import messagebox as MessageBox
 from analizador import *
 from creacionTablas import *
 
-
+comandos = None
 rutaArchivo = None
 
 def temasAyuda():
@@ -82,6 +82,7 @@ def abrir_Archivo(cajaTexto):
 
     else:
         MessageBox.showwarning("Alerta", "No se a seleccionado ningun archivo.")
+        rutaArchivo = None
 
 
 
@@ -127,6 +128,7 @@ def guardar(cajaTexto):
 
         else:
             MessageBox.showwarning("Alerta", "No se completo el guardado")
+            rutaArchivo = None
 
         
         
@@ -153,7 +155,6 @@ def guardarComo(cajaTexto):
     )
 
     if rutaArchivo:
-        print(rutaArchivo)
         with open(rutaArchivo, 'w', encoding="utf-8") as lineas:
             contenido = cajaTexto.get("1.0", tk.END)
             lineas.write(contenido)
@@ -161,5 +162,6 @@ def guardarComo(cajaTexto):
 
     else:
         MessageBox.showwarning("Alerta", "No se completo el guardado")
+        rutaArchivo = None
 
     
